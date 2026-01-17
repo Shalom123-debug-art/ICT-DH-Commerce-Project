@@ -46,7 +46,15 @@ except ImportError:
 # INITIALIZE APP
 # ============================================
 app = Flask(__name__)
-CORS(app)  # Allow frontend requests
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "https://ict-dh-commerce-project-1.onrender.com",  # Your frontend
+            "http://localhost:5500"  # Keep for local development
+        ]
+    }
+})
+
 
 # Email configuration
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
@@ -311,7 +319,7 @@ def check_rating_requests():
                                 f"""
                                 <h3>How was your trade with {seller_data.get('fullName')}?</h3>
                                 <p>Please rate your experience from 1-5 stars.</p>
-                                <p><a href="http://localhost:5000/rate/{doc.id}/buyer">Click here to rate</a></p>
+                                <p><a href="https://ict-dh-commerce-project.onrender.com/rate/{doc.id}/buyer">Click here to rate</a></p>
                                 <p>Your feedback helps build trust in our community!</p>
                                 """
                             )
@@ -323,7 +331,7 @@ def check_rating_requests():
                                 f"""
                                 <h3>How was your trade with {buyer_data.get('fullName')}?</h3>
                                 <p>Please rate your experience from 1-5 stars.</p>
-                                <p><a href="http://localhost:5000/rate/{doc.id}/seller">Click here to rate</a></p>
+                                <p><a href="https://ict-dh-commerce-project.onrender.com/rate/{doc.id}/seller">Click here to rate</a></p>
                                 <p>Your feedback helps build trust in our community!</p>
                                 """
                             )
@@ -432,7 +440,7 @@ def send_trade_request_email():
         trade_time = data.get('trade_time')
         trade_date = data.get('trade_date')
         # Default to localhost
-        app_url = data.get('app_url', 'http://localhost:5500')
+        app_url = data.get('app_url', 'https://ict-dh-commerce-project-1.onrender.com')
 
         if not all([to_email, from_user, food_name]):
             return jsonify({'error': 'Missing required fields'}), 400
@@ -625,7 +633,7 @@ def rate_transaction(transaction_id, role):
                 <h2>Thank You!</h2>
                 <p>Your rating has been submitted successfully.</p>
                 <p><em>Your feedback helps improve our trading community.</em></p>
-                <p><a href="/">Return to DH-Commerce</a></p>
+                <p><a href="https://ict-dh-commerce-project-1.onrender.com">Return to DH-Commerce</a></p>
             </body>
             </html>
             """
