@@ -1899,7 +1899,7 @@ function debounce(func, wait) {
 
 async function filterAdminFoods(searchTerm = '', mealType = '') {
     try {
-        const response = await fetch('https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
+        const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
             headers: {
                 'Authorization': 'admin-secret-key'
             }
@@ -1982,7 +1982,7 @@ async function filterAdminFoods(searchTerm = '', mealType = '') {
 async function editFood(foodId) {
     try {
         // First, get the food data
-        const response = await fetch('https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
+        const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
             headers: {
                 'Authorization': 'admin-secret-key'
             }
@@ -2118,7 +2118,7 @@ async function handleUpdateFood(e) {
     };
 
     try {
-        const response = await fetch('https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
+        const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -2149,7 +2149,7 @@ async function handleUpdateFood(e) {
 async function deleteFood(foodId) {
     if (confirm('Are you sure you want to delete this food item? This action cannot be undone.')) {
         try {
-            const response = await fetch('https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
+            const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2288,7 +2288,7 @@ async function handleAddFood(e) {
     };
 
     try {
-        const response = await fetch('https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
+        const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
