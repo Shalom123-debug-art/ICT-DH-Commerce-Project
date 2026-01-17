@@ -369,7 +369,7 @@ async function handleSignUp(e) {
 
         // Send welcome email
         try {
-            await fetch('https://ict-dh-commerce-project.onrender.com:5000/api/send_welcome_email', {
+            await fetch('https://ict-dh-commerce-project.onrender.com/api/send_welcome_email', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1077,7 +1077,7 @@ async function sendTradeRequest() {
 
         // Send email notification
         try {
-            await fetch('https://ict-dh-commerce-project.onrender.com:5000/api/send_trade_request', {
+            await fetch('https://ict-dh-commerce-project.onrender.com/api/send_trade_request', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1403,7 +1403,7 @@ async function acceptTradeRequest(requestId) {
             const requestedFoodDoc = await db.collection('foods').doc(request.requestedFoodId).get();
             const requestedFood = requestedFoodDoc.data();
 
-            await fetch('https://ict-dh-commerce-project.onrender.com:5000/api/send_trade_accepted', {
+            await fetch('https://ict-dh-commerce-project.onrender.com/api/send_trade_accepted', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1465,7 +1465,7 @@ async function declineTradeRequest(requestId) {
             const buyerDoc = await db.collection('users').doc(request.fromUserId).get();
             const buyerData = buyerDoc.data();
 
-            await fetch('https://ict-dh-commerce-project.onrender.com:5000/api/send_trade_declined', {
+            await fetch('https://ict-dh-commerce-project.onrender.com/api/send_trade_declined', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1660,7 +1660,7 @@ async function loadUserProfile(userId) {
 
 async function loadTradeHistory() {
     try {
-        const response = await fetch(`https://ict-dh-commerce-project.onrender.com:5000/api/trade-history/${currentUserId}`);
+        const response = await fetch(`https://ict-dh-commerce-project.onrender.com/api/trade-history/${currentUserId}`);
         const data = await response.json();
 
         const historyList = document.getElementById('trade-history');
