@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DH-Commerce | School Food Trade</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+
+<body>
+    <!-- Auth Screen (Initial) -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <div class="logo-header">
+                <div class="logo-circle">
+                    <span class="logo-red">DH</span>
+                    <span class="logo-blue">Commerce</span>
+                </div>
+                <h2>Trade Food Smartly</h2>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-tab="signin">Sign In</button>
+                <button class="tab-btn" data-tab="signup">Sign Up</button>
+            </div>
+
+            <div class="tab-content active" id="signin-tab">
+                <form id="signin-form">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="signin-username" placeholder="Email or Username" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="signin-password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Sign In</button>
+                    <p class="auth-link" id="forgot-password">Forgot Password?</p>
+                </form>
+            </div>
+
+            <div class="tab-content" id="signup-tab">
+                <form id="signup-form">
+                    <div class="input-group">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" id="signup-fullname" placeholder="Full Name" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="signup-username" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="signup-email" placeholder="Email" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-graduation-cap"></i>
+                        <select id="signup-grade" required>
+                            <option value="">Select Grade</option>
+                            <option value="9">Grade 9</option>
+                            <option value="10">Grade 10</option>
+                            <option value="11">Grade 11</option>
+                            <option value="12">Grade 12</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="signup-password" placeholder="Password" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Create Account</button>
+                </form>
+            </div>
+
+            <div class="disclaimer">
+                <i class="fas fa-info-circle"></i>
+                <p>Nutrient values are estimates for educational purposes.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App (After Login) -->
+    <div id="app-screen" class="screen">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <span class="logo-red">DH</span><span class="logo-blue">Commerce</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" data-page="home" class="nav-link active">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="#" data-page="profile" class="nav-link">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+                <a href="#" data-page="people" class="nav-link">
+                    <i class="fas fa-users"></i> People
+                </a>
+                <a href="#" data-page="food" class="nav-link">
+                    <i class="fas fa-utensils"></i> Food Info
+                </a>
+                <a href="#" data-page="transaction" class="nav-link">
+                    <i class="fas fa-exchange-alt"></i> Trade
+                </a>
+                <!-- Admin link - only visible to admins -->
+                <a href="#" data-page="admin" class="nav-link" id="admin-link" style="display: none;">
+                    <i class="fas fa-cog"></i> Admin
+                </a>
+                <button id="theme-toggle" class="theme-btn">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button id="logout-btn" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+            <div class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+
+        <!-- Page Container -->
+        <main class="page-container">
+            <!-- Home Page -->
+            <div id="home-page" class="page active">
+                <div class="hero-section">
+                    <h1>Welcome to DH-Commerce</h1>
+                    <p class="subtitle">Smart Food Trading for Students</p>
+                </div>
+
+                <section class="mission-section">
+                    <h2><i class="fas fa-bullseye"></i> Our Mission</h2>
+                    <div class="mission-cards">
+                        <div class="mission-card">
+                            <i class="fas fa-recycle"></i>
+                            <h3>Reduce Waste</h3>
+                            <p>Exchange unopened, school-approved foods instead of throwing them away.</p>
+                        </div>
+                        <div class="mission-card">
+                            <i class="fas fa-apple-alt"></i>
+                            <h3>Promote Nutrition</h3>
+                            <p>Learn about calories and nutrients with every trade.</p>
+                        </div>
+                        <div class="mission-card">
+                            <i class="fas fa-handshake"></i>
+                            <h3>Build Trust</h3>
+                            <p>Rate your trading partners and build a reliable community.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rules-section">
+                    <h2><i class="fas fa-gavel"></i> Trading Rules</h2>
+                    <div class="rules-list">
+                        <div class="rule-item">
+                            <div class="rule-icon">💰</div>
+                            <p><strong>Barter Only:</strong> No money exchanges allowed.</p>
+                        </div>
+                        <div class="rule-item">
+                            <div class="rule-icon">🏫</div>
+                            <p><strong>School-Approved Foods:</strong> Only foods from our cafeteria menu.</p>
+                        </div>
+                        <div class="rule-item">
+                            <div class="rule-icon">🙏</div>
+                            <p><strong>Respectful Behavior:</strong> Be polite and honest in all trades.</p>
+                        </div>
+                        <div class="rule-item">
+                            <div class="rule-icon">⏰</div>
+                            <p><strong>Timely Trades:</strong> Complete exchanges at scheduled meal times.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="highlights-section">
+                    <h2><i class="fas fa-chart-line"></i> Weekly Highlights</h2>
+                    <div id="weekly-highlights" class="highlights-grid">
+                        <!-- Filled by JS -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profile-page" class="page">
+                <div class="profile-header">
+                    <h1><i class="fas fa-user-circle"></i> Your Profile</h1>
+                    <button id="edit-profile-btn" class="btn-secondary">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </div>
+
+                <div class="profile-container">
+                    <div class="profile-sidebar">
+                        <div class="profile-card">
+                            <div class="avatar-large">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h3 id="profile-name">John Doe</h3>
+                            <div class="rating-display">
+                                <div class="stars">
+                                    <!-- Stars filled by JS -->
+                                </div>
+                                <span id="average-rating">4.5</span>
+                            </div>
+                            <p class="grade-badge" id="profile-grade">Grade 11</p>
+                            <div class="stats">
+                                <div class="stat-item">
+                                    <strong id="trades-count">12</strong>
+                                    <span>Trades</span>
+                                </div>
+                                <div class="stat-item">
+                                    <strong id="rating-count">8</strong>
+                                    <span>Ratings</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="preference-card">
+                            <h4><i class="fas fa-palette"></i> Appearance</h4>
+                            <div class="toggle-group">
+                                <span>Dark Mode</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="dark-mode-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-content">
+                        <div class="info-section">
+                            <h3><i class="fas fa-info-circle"></i> Personal Information</h3>
+                            <form id="profile-form">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Full Name</label>
+                                        <input type="text" id="profile-fullname" disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Username</label>
+                                        <input type="text" id="profile-username" disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Email</label>
+                                        <input type="email" id="profile-email" disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Grade</label>
+                                        <select id="profile-grade-select" disabled>
+                                            <option value="9">Grade 9</option>
+                                            <option value="10">Grade 10</option>
+                                            <option value="11">Grade 11</option>
+                                            <option value="12">Grade 12</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>About You (max 100 chars)</label>
+                                    <textarea id="profile-description" maxlength="100" disabled></textarea>
+                                    <div class="char-count"><span id="char-count">0</span>/100</div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" id="save-profile-btn" class="btn-primary"
+                                        style="display: none;">
+                                        Save Changes
+                                    </button>
+                                    <button type="button" id="cancel-edit-btn" class="btn-secondary"
+                                        style="display: none;">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="info-section">
+                            <h3><i class="fas fa-key"></i> Change Password</h3>
+                            <form id="password-form">
+                                <div class="form-group">
+                                    <label>Current Password</label>
+                                    <input type="password" id="current-password">
+                                </div>
+                                <div class="form-group">
+                                    <label>New Password</label>
+                                    <input type="password" id="new-password">
+                                </div>
+                                <div class="form-group">
+                                    <label>Confirm New Password</label>
+                                    <input type="password" id="confirm-new-password">
+                                </div>
+                                <button type="submit" class="btn-primary">Update Password</button>
+                            </form>
+                        </div>
+
+                        <div class="info-section">
+                            <h3><i class="fas fa-history"></i> Trade History</h3>
+                            <div id="trade-history" class="history-list">
+                                <!-- Filled by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- People Page -->
+            <div id="people-page" class="page">
+                <div class="page-header">
+                    <h1><i class="fas fa-users"></i> Find Traders</h1>
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="people-search" placeholder="Search by name or username...">
+                        <button id="people-search-btn" class="btn-primary"
+                            style="margin-left: 10px; padding: 10px 20px;">
+                            Search
+                        </button>
+                    </div>
+                </div>
+
+                <div class="people-grid" id="people-grid">
+                    <!-- User cards filled by JS -->
+                </div>
+            </div>
+
+            <!-- Food Info Page -->
+            <div id="food-page" class="page">
+                <div class="page-header">
+                    <h1><i class="fas fa-utensils"></i> Food Database</h1>
+                    <div class="filter-container">
+                        <select id="meal-filter">
+                            <option value="">All Meals</option>
+                            <option value="breakfast">Breakfast</option>
+                            <option value="lunch">Lunch</option>
+                            <option value="dinner">Dinner</option>
+                        </select>
+                        <select id="time-filter">
+                            <option value="">Any Time</option>
+                            <option value="morning">Morning</option>
+                            <option value="afternoon">Afternoon</option>
+                            <option value="evening">Evening</option>
+                        </select>
+                        <div class="search-container">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="food-search" placeholder="Search foods...">
+                        </div>
+                        <button id="food-apply-btn" class="btn-primary">Apply Filters</button>
+                    </div>
+                </div>
+
+                <div class="food-grid" id="food-grid">
+                    <!-- Food cards filled by JS -->
+                </div>
+            </div>
+
+            <!-- Transaction Page -->
+            <div id="transaction-page" class="page">
+                <div class="transaction-header">
+                    <h1><i class="fas fa-exchange-alt"></i> Trade Center</h1>
+                    <div class="transaction-tabs">
+                        <button class="trans-tab active" data-tab="receive">Find Offers</button>
+                        <button class="trans-tab" data-tab="give">Make Offer</button>
+                        <button class="trans-tab" data-tab="requests">My Requests</button>
+                    </div>
+                </div>
+
+                <!-- Receive Section -->
+                <div id="receive-section" class="trans-section active">
+                    <div class="filters-bar">
+                        <select id="receive-meal">
+                            <option value="">All Meals</option>
+                            <option value="breakfast">Breakfast</option>
+                            <option value="lunch">Lunch</option>
+                            <option value="dinner">Dinner</option>
+                        </select>
+                        <select id="receive-category">
+                            <option value="">All Categories</option>
+                            <option value="high-protein">High Protein</option>
+                            <option value="low-calorie">Low Calorie</option>
+                            <option value="vegetarian">Vegetarian</option>
+                        </select>
+                        <button id="apply-filters" class="btn-primary">Apply Filters</button>
+                        <button id="clear-filters" class="btn-secondary">Clear Filters</button>
+                    </div>
+
+                    <div class="offers-grid" id="offers-grid">
+                        <!-- Offers filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Give Section -->
+                <div id="give-section" class="trans-section">
+                    <div class="give-form-container">
+                        <form id="give-form">
+                            <div class="form-group">
+                                <label><i class="fas fa-utensils"></i> Food You're Giving</label>
+                                <select id="give-food" required>
+                                    <option value="">Select a food...</option>
+                                    <!-- Filled by JS -->
+                                </select>
+                            </div>
+
+                            <div class="food-preview" id="give-food-preview">
+                                <!-- Food preview appears here -->
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fas fa-hand-holding-heart"></i> What You Want</label>
+                                <div class="radio-group">
+                                    <label>
+                                        <input type="radio" name="want-type" value="all" checked>
+                                        <span>Anything (Negotiate later)</span>
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="want-type" value="specific">
+                                        <span>Specific Food</span>
+                                    </label>
+                                </div>
+
+                                <select id="want-food" disabled>
+                                    <option value="">Select desired food...</option>
+                                    <!-- Filled by JS -->
+                                </select>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Post Offer
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="active-offers">
+                            <h3>Your Active Offers</h3>
+                            <div id="user-offers-list">
+                                <!-- Filled by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Requests Section -->
+                <div id="requests-section" class="trans-section">
+                    <div class="requests-container">
+                        <h3><i class="fas fa-inbox"></i> Incoming Trade Requests</h3>
+                        <div id="user-requests-list">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Page (Hidden) -->
+            <div id="admin-page" class="page">
+                <div class="admin-header">
+                    <h1><i class="fas fa-cog"></i> Admin Panel</h1>
+                    <p class="admin-subtitle">Manage Foods and System Settings</p>
+                </div>
+
+                <div class="admin-container">
+                    <div class="admin-sidebar">
+                        <div class="admin-menu">
+                            <button class="admin-menu-btn active" data-section="foods">
+                                <i class="fas fa-utensils"></i> Manage Foods
+                            </button>
+                            <button class="admin-menu-btn" data-section="users">
+                                <i class="fas fa-users"></i> View Users
+                            </button>
+                            <button class="admin-menu-btn" data-section="trades">
+                                <i class="fas fa-exchange-alt"></i> All Trades
+                            </button>
+                            <button class="admin-menu-btn" data-section="settings">
+                                <i class="fas fa-sliders-h"></i> Settings
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="admin-content">
+                        <!-- Foods Management Section -->
+                        <div id="admin-foods" class="admin-section active">
+                            <div class="section-header">
+                                <h3>Food Management</h3>
+                                <button class="btn-primary" id="add-food-btn">
+                                    <i class="fas fa-plus"></i> Add New Food
+                                </button>
+                            </div>
+
+                            <div class="admin-filters">
+                                <input type="text" id="admin-food-search"
+                                    placeholder="Search foods by name or description...">
+                                <select id="admin-meal-filter">
+                                    <option value="">All Meals</option>
+                                    <option value="breakfast">Breakfast</option>
+                                    <option value="lunch">Lunch</option>
+                                    <option value="dinner">Dinner</option>
+                                </select>
+                                <button class="btn-primary" id="admin-refresh-foods">
+                                    <i class="fas fa-sync"></i> Refresh
+                                </button>
+                            </div>
+
+                            <div class="foods-table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Calories</th>
+                                            <th>Protein</th>
+                                            <th>Carbs</th>
+                                            <th>Fat</th>
+                                            <th>Meal Type</th>
+                                            <th>Available Time</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-foods-list">
+                                        <!-- Foods will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Users Section -->
+                        <div id="admin-users" class="admin-section">
+                            <div class="section-header">
+                                <h3>User Management</h3>
+                            </div>
+                            <div id="admin-users-list">
+                                <!-- Users will be populated here -->
+                            </div>
+                        </div>
+
+                        <!-- Trades Section -->
+                        <div id="admin-trades" class="admin-section">
+                            <div class="section-header">
+                                <h3>All Trades</h3>
+                            </div>
+                            <div id="admin-trades-list">
+                                <!-- Trades will be populated here -->
+                            </div>
+                        </div>
+
+                        <!-- Settings Section -->
+                        <div id="admin-settings" class="admin-section">
+                            <div class="section-header">
+                                <h3>System Settings</h3>
+                            </div>
+                            <div class="settings-grid">
+                                <div class="setting-item">
+                                    <h4>Email Configuration</h4>
+                                    <p>Configure email notifications</p>
+                                    <button class="btn-secondary">Configure</button>
+                                </div>
+                                <div class="setting-item">
+                                    <h4>Backup Database</h4>
+                                    <p>Create a backup of all data</p>
+                                    <button class="btn-secondary">Backup Now</button>
+                                </div>
+                                <div class="setting-item">
+                                    <h4>System Logs</h4>
+                                    <p>View system logs and errors</p>
+                                    <button class="btn-secondary">View Logs</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Food Modal -->
+            <div id="add-food-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3>Add New Food</h3>
+                    <form id="add-food-form">
+                        <div class="form-group">
+                            <label>Food Name</label>
+                            <input type="text" id="food-name" required>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Calories</label>
+                                <input type="number" id="food-calories" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Protein (g)</label>
+                                <input type="number" id="food-protein" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Carbs (g)</label>
+                                <input type="number" id="food-carbs" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Fat (g)</label>
+                                <input type="number" id="food-fat" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Meal Type</label>
+                            <select id="food-meal-type" required>
+                                <option value="">Select meal type</option>
+                                <option value="breakfast">Breakfast</option>
+                                <option value="lunch">Lunch</option>
+                                <option value="dinner">Dinner</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Available Time</label>
+                            <input type="time" id="food-available-time" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Allergy Warnings (comma separated)</label>
+                            <input type="text" id="food-allergies" placeholder="dairy, nuts, gluten">
+                        </div>
+                        <div class="form-group">
+                            <label>Nutrient Importance</label>
+                            <textarea id="food-importance" rows="3"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Add Food</button>
+                            <button type="button" class="btn-secondary cancel-btn">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Request Modal -->
+            <div id="request-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3>Send Trade Request</h3>
+                    <div class="trade-summary">
+                        <div class="offer-item">
+                            <h4>You Receive:</h4>
+                            <div id="receive-food-details"></div>
+                        </div>
+                        <div class="offer-item">
+                            <h4>You Give:</h4>
+                            <select id="offer-food-select">
+                                <option value="">Select your food...</option>
+                                <!-- Filled by JS -->
+                            </select>
+                            <div id="selected-food-preview"></div>
+                        </div>
+                    </div>
+                    <button id="send-request-btn" class="btn-primary">Send Request</button>
+                </div>
+            </div>
+
+            <!-- Notifications Panel -->
+            <div id="notifications-panel" class="notifications-panel">
+                <div class="panel-header">
+                    <h3>Notifications</h3>
+                    <button id="clear-notifications" class="btn-secondary">Clear All</button>
+                </div>
+                <div class="notifications-list" id="notifications-list">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Made in 2025 with ❤️ by DH-Commerce Team</p>
+            <p class="footer-disclaimer">
+                <i class="fas fa-exclamation-triangle"></i>
+                Nutrient values are estimates for educational purposes.
+            </p>
+        </footer>
+    </div>
+
+    <!-- Firebase & App Config -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="config.js"></script>
+    <script>
+        // Make auth and db globally available
+        window.auth = auth;
+        window.db = db;
+    </script>
+    <script src="app.js"></script>
+</body>
+
+</html>
