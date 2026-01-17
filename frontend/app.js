@@ -1798,7 +1798,7 @@ async function loadAdminFoods() {
     if (!isAdmin) return;
 
     try {
-        const response = await fetch('https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
+        const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
             headers: {
                 'Authorization': 'admin-secret-key'
             }
