@@ -369,7 +369,7 @@ async function handleSignUp(e) {
 
         // Send welcome email
         try {
-            await fetch('http://localhost:5000/api/send_welcome_email', {
+            await fetch('http://https://ict-dh-commerce-project.onrender.com:5000/api/send_welcome_email', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1077,7 +1077,7 @@ async function sendTradeRequest() {
 
         // Send email notification
         try {
-            await fetch('http://localhost:5000/api/send_trade_request', {
+            await fetch('http://https://ict-dh-commerce-project.onrender.com:5000/api/send_trade_request', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1403,7 +1403,7 @@ async function acceptTradeRequest(requestId) {
             const requestedFoodDoc = await db.collection('foods').doc(request.requestedFoodId).get();
             const requestedFood = requestedFoodDoc.data();
 
-            await fetch('http://localhost:5000/api/send_trade_accepted', {
+            await fetch('http://https://ict-dh-commerce-project.onrender.com:5000/api/send_trade_accepted', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1465,7 +1465,7 @@ async function declineTradeRequest(requestId) {
             const buyerDoc = await db.collection('users').doc(request.fromUserId).get();
             const buyerData = buyerDoc.data();
 
-            await fetch('http://localhost:5000/api/send_trade_declined', {
+            await fetch('http://https://ict-dh-commerce-project.onrender.com:5000/api/send_trade_declined', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1660,7 +1660,7 @@ async function loadUserProfile(userId) {
 
 async function loadTradeHistory() {
     try {
-        const response = await fetch(`http://localhost:5000/api/trade-history/${currentUserId}`);
+        const response = await fetch(`http://https://ict-dh-commerce-project.onrender.com:5000/api/trade-history/${currentUserId}`);
         const data = await response.json();
 
         const historyList = document.getElementById('trade-history');
@@ -1798,7 +1798,7 @@ async function loadAdminFoods() {
     if (!isAdmin) return;
 
     try {
-        const response = await fetch('http://localhost:5000/api/admin/foods', {
+        const response = await fetch('http://https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
             headers: {
                 'Authorization': 'admin-secret-key'
             }
@@ -1899,7 +1899,7 @@ function debounce(func, wait) {
 
 async function filterAdminFoods(searchTerm = '', mealType = '') {
     try {
-        const response = await fetch('http://localhost:5000/api/admin/foods', {
+        const response = await fetch('http://https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
             headers: {
                 'Authorization': 'admin-secret-key'
             }
@@ -1982,7 +1982,7 @@ async function filterAdminFoods(searchTerm = '', mealType = '') {
 async function editFood(foodId) {
     try {
         // First, get the food data
-        const response = await fetch('http://localhost:5000/api/admin/foods', {
+        const response = await fetch('http://https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
             headers: {
                 'Authorization': 'admin-secret-key'
             }
@@ -2118,7 +2118,7 @@ async function handleUpdateFood(e) {
     };
 
     try {
-        const response = await fetch('http://localhost:5000/api/admin/foods', {
+        const response = await fetch('http://https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -2149,7 +2149,7 @@ async function handleUpdateFood(e) {
 async function deleteFood(foodId) {
     if (confirm('Are you sure you want to delete this food item? This action cannot be undone.')) {
         try {
-            const response = await fetch('http://localhost:5000/api/admin/foods', {
+            const response = await fetch('http://https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2288,7 +2288,7 @@ async function handleAddFood(e) {
     };
 
     try {
-        const response = await fetch('http://localhost:5000/api/admin/foods', {
+        const response = await fetch('http://https://ict-dh-commerce-project.onrender.com:5000/api/admin/foods', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
