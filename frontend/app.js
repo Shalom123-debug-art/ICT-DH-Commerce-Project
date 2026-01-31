@@ -17,6 +17,7 @@ const sampleFoods = [
         mealType: "lunch",
         availableDate: "2025-03-15",
         availableTime: "12:30",
+        availableDays: [1, 3, 5], // Monday, Wednesday, Friday
         allergyWarnings: ["none"],
         nutrientsImportance: "High protein for muscle repair"
     },
@@ -30,10 +31,73 @@ const sampleFoods = [
         mealType: "breakfast",
         availableDate: "2025-03-15",
         availableTime: "08:00",
+        availableDays: [0, 1, 2, 3, 4], // Monday-Friday
         allergyWarnings: ["dairy"],
         nutrientsImportance: "Calcium for bone health"
     }
 ];
+
+// Helper function to get next occurrence based on weekly schedule
+function getNextOccurrence(food) {
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    // Get food's available days
+    const availableDays = food.availableDays ||
+        (food.availableWeekdays ?
+            food.availableWeekdays.map(day => daysOfWeek.indexOf(day)) :
+            []);
+
+    if (availableDays.length === 0) {
+        // Fallback to original date logic
+        const foodDate = new Date(food.availableDate || food.originalDate);
+        return {
+            date: foodDate.toISOString().split('T')[0],
+            time: food.availableTime,
+            dayName: daysOfWeek[foodDate.getDay()]
+        };
+    }
+
+    const now = new Date();
+    const currentDay = now.getDay(); // 0-6
+    const currentDate = now.getDate();
+
+    // Find next available day
+    let daysToAdd = 0;
+    for (let i = 0; i < 7; i++) {
+        const checkDay = (currentDay + i) % 7;
+        if (availableDays.includes(checkDay)) {
+            // If today is an available day and time hasn't passed yet
+            if (i === 0) {
+                const [hours, minutes] = food.availableTime.split(':').map(Number);
+                const foodTime = new Date();
+                foodTime.setHours(hours, minutes, 0, 0);
+
+                if (now < foodTime) {
+                    daysToAdd = i;
+                    break;
+                }
+            } else {
+                daysToAdd = i;
+                break;
+            }
+        }
+    }
+
+    // Calculate the date
+    const nextDate = new Date(now);
+    nextDate.setDate(currentDate + daysToAdd);
+
+    // Format date as YYYY-MM-DD
+    const year = nextDate.getFullYear();
+    const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+    const day = String(nextDate.getDate()).padStart(2, '0');
+
+    return {
+        date: `${year}-${month}-${day}`,
+        time: food.availableTime,
+        dayName: daysOfWeek[nextDate.getDay()]
+    };
+}
 
 // ============================================
 // INITIALIZATION - RUNS WHEN PAGE LOADS
@@ -369,7 +433,7 @@ async function handleSignUp(e) {
 
         // Send welcome email
         try {
-            await fetch('https://ict-dh-commerce-project.onrender.com/api/send_welcome_email', {
+            await fetch('http://localhost:5000/api/send_welcome_email', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -746,6 +810,22 @@ async function loadFoods(filters = {}) {
                     `<span class="allergy-tag">${allergy}</span>`
                 ).join('') : '';
 
+            // Get next occurrence
+            const nextOccurrence = getNextOccurrence(food);
+
+            // Format available days
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const availableDays = food.availableDays ||
+                (food.availableWeekdays ?
+                    food.availableWeekdays.map(day => daysOfWeek.indexOf(day)) :
+                    []);
+
+            let daysText = '';
+            if (availableDays.length > 0) {
+                const dayNames = availableDays.map(day => daysOfWeek[day]);
+                daysText = `<p><strong>Available Days:</strong> ${dayNames.join(', ')}</p>`;
+            }
+
             const foodCard = `
                 <div class="food-detail-card">
                     <div class="food-header">
@@ -772,7 +852,8 @@ async function loadFoods(filters = {}) {
                     </div>
                     <div class="food-info">
                         <p><strong>Importance:</strong> ${food.nutrientsImportance}</p>
-                        <p><strong>Available:</strong> ${food.availableDate} at ${food.availableTime}</p>
+                        ${daysText}
+                        <p><strong>Next Available:</strong> ${nextOccurrence.dayName} at ${nextOccurrence.time} (${nextOccurrence.date})</p>
                     </div>
                     ${allergyTags ? `
                     <div class="allergy-warnings">
@@ -918,7 +999,7 @@ async function loadOffers(filters = {}) {
                         </div>
                     </div>
                     <div class="offer-details">
-                        <p><i class="far fa-clock"></i> ${item.offer.tradeTime} on ${item.offer.tradeDate}</p>
+                        <p><i class="far fa-clock"></i> ${item.offer.tradeTime} on ${item.offer.tradeDate} (${item.offer.tradeDay || getNextOccurrence(item.food).dayName})</p>
                         <p><i class="fas fa-map-marker-alt"></i> School Cafeteria</p>
                     </div>
                     <div class="offer-actions">
@@ -1058,6 +1139,7 @@ async function sendTradeRequest() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             tradeDate: originalOffer.tradeDate,
             tradeTime: originalOffer.tradeTime,
+            tradeDay: originalOffer.tradeDay || getNextOccurrence(originalFood).dayName,
             reminderSent: false,
             ratingSent: false,
             parentOfferId: offerId,
@@ -1077,7 +1159,7 @@ async function sendTradeRequest() {
 
         // Send email notification
         try {
-            await fetch('https://ict-dh-commerce-project.onrender.com/api/send_trade_request', {
+            await fetch('http://localhost:5000/api/send_trade_request', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1149,11 +1231,14 @@ async function loadGiveFoods() {
             const foodDoc = await db.collection('foods').doc(foodId).get();
             if (foodDoc.exists) {
                 const food = foodDoc.data();
+                const nextOccurrence = getNextOccurrence(food);
+
                 preview.innerHTML = `
                     <div class="food-preview-card">
                         <h4>${food.name}</h4>
                         <p>${food.calories} calories • ${food.mealType}</p>
                         <p>Protein: ${food.protein}g • Carbs: ${food.carbs}g • Fat: ${food.fat}g</p>
+                        <p><strong>Next Available:</strong> ${nextOccurrence.dayName} at ${nextOccurrence.time}</p>
                         <p><em>${food.nutrientsImportance}</em></p>
                     </div>
                 `;
@@ -1191,6 +1276,9 @@ async function handleGiveOffer(e) {
         const foodDoc = await db.collection('foods').doc(giveFoodId).get();
         const food = foodDoc.data();
 
+        // Get next occurrence
+        const nextOccurrence = getNextOccurrence(food);
+
         // Create public offer
         await db.collection('transactions').add({
             fromUserId: currentUserId,
@@ -1199,14 +1287,15 @@ async function handleGiveOffer(e) {
             requestedFoodId: wantFoodId,
             status: 'pending',
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            tradeDate: food.availableDate,
-            tradeTime: food.availableTime,
+            tradeDate: nextOccurrence.date,
+            tradeTime: nextOccurrence.time,
+            tradeDay: nextOccurrence.dayName,
             reminderSent: false,
             ratingSent: false,
             isRequest: false
         });
 
-        showToast('Offer posted successfully!', 'success');
+        showToast(`Offer posted for ${nextOccurrence.dayName} at ${nextOccurrence.time}!`, 'success');
         e.target.reset();
         document.getElementById('give-food-preview').innerHTML = '';
         loadUserOffers();
@@ -1255,7 +1344,7 @@ async function loadUserOffers() {
                     <div class="offer-info">
                         <p><strong>Giving:</strong> ${food.name} (${food.calories} cal)</p>
                         <p><strong>Want:</strong> ${wantedFood}</p>
-                        <p><strong>Time:</strong> ${offer.tradeTime} on ${offer.tradeDate}</p>
+                        <p><strong>Time:</strong> ${offer.tradeTime} on ${offer.tradeDate} (${offer.tradeDay || 'Weekly'})</p>
                     </div>
                     <div class="offer-actions">
                         <button class="btn-secondary cancel-offer" data-offerid="${doc.id}">
@@ -1403,7 +1492,7 @@ async function acceptTradeRequest(requestId) {
             const requestedFoodDoc = await db.collection('foods').doc(request.requestedFoodId).get();
             const requestedFood = requestedFoodDoc.data();
 
-            await fetch('https://ict-dh-commerce-project.onrender.com/api/send_trade_accepted', {
+            await fetch('http://localhost:5000/api/send_trade_accepted', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1448,24 +1537,17 @@ async function declineTradeRequest(requestId) {
             declineReason: reason || 'No reason provided'
         });
 
-        // Create decline notification
+        // Get buyer info for email
+        const buyerDoc = await db.collection('users').doc(request.fromUserId).get();
+        const buyerData = buyerDoc.data();
+
+        // Get current user info
         const currentUserDoc = await db.collection('users').doc(currentUserId).get();
         const currentUserData = currentUserDoc.data();
 
-        await db.collection('notifications').add({
-            userId: request.fromUserId,
-            type: 'trade_declined',
-            message: `${currentUserData.fullName} declined your trade request${reason ? ': ' + reason : ''}`,
-            read: false,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
         // Send decline email with reason
         try {
-            const buyerDoc = await db.collection('users').doc(request.fromUserId).get();
-            const buyerData = buyerDoc.data();
-
-            await fetch('https://ict-dh-commerce-project.onrender.com/api/send_trade_declined', {
+            await fetch('http://localhost:5000/api/send_trade_declined', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1478,8 +1560,17 @@ async function declineTradeRequest(requestId) {
                 })
             });
         } catch (emailError) {
-            console.log('Decline email failed');
+            console.log('Decline email failed:', emailError);
         }
+
+        // Create decline notification
+        await db.collection('notifications').add({
+            userId: request.fromUserId,
+            type: 'trade_declined',
+            message: `${currentUserData.fullName} declined your trade request${reason ? ': ' + reason : ''}`,
+            read: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
         showToast('Trade request declined', 'info');
 
@@ -1660,7 +1751,7 @@ async function loadUserProfile(userId) {
 
 async function loadTradeHistory() {
     try {
-        const response = await fetch(`https://ict-dh-commerce-project.onrender.com/api/trade-history/${currentUserId}`);
+        const response = await fetch(`http://localhost:5000/api/trade-history/${currentUserId}`);
         const data = await response.json();
 
         const historyList = document.getElementById('trade-history');
@@ -1798,38 +1889,47 @@ async function loadAdminFoods() {
     if (!isAdmin) return;
 
     try {
-        const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
-            headers: {
-                'Authorization': 'admin-secret-key'
-            }
-        });
-        const data = await response.json();
+        console.log('Loading admin foods...');
 
+        if (!db) {
+            showToast('Database not connected', 'error');
+            return;
+        }
+
+        const snapshot = await db.collection('foods').get();
         const foodsList = document.getElementById('admin-foods-list');
         foodsList.innerHTML = '';
 
-        if (!data.success || data.count === 0) {
+        if (snapshot.empty) {
             foodsList.innerHTML = `
                 <tr>
-                    <td colspan="8" class="no-data">No foods found</td>
+                    <td colspan="9" class="no-data">No foods found</td>
                 </tr>
             `;
             return;
         }
 
-        data.foods.forEach(food => {
+        snapshot.forEach(doc => {
+            const food = doc.data();
+            // Format available days
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const availableDays = food.availableDays || [];
+            const daysText = availableDays.length > 0 ?
+                availableDays.map(day => daysOfWeek[day]).join(', ') : 'Not set';
+
             const foodRow = `
                 <tr>
-                    <td>${food.name}</td>
-                    <td>${food.calories}</td>
-                    <td>${food.protein}g</td>
-                    <td>${food.carbs}g</td>
-                    <td>${food.fat}g</td>
-                    <td><span class="meal-badge ${food.mealType}">${food.mealType}</span></td>
-                    <td>${food.availableTime}</td>
+                    <td>${food.name || 'N/A'}</td>
+                    <td>${food.calories || 0}</td>
+                    <td>${food.protein || 0}g</td>
+                    <td>${food.carbs || 0}g</td>
+                    <td>${food.fat || 0}g</td>
+                    <td><span class="meal-badge ${food.mealType || 'lunch'}">${food.mealType || 'N/A'}</span></td>
+                    <td>${food.availableTime || 'N/A'}</td>
+                    <td>${daysText}</td>
                     <td class="action-buttons">
-                        <button class="btn-secondary btn-sm edit-food" data-id="${food.id}">Edit</button>
-                        <button class="btn-danger btn-sm delete-food" data-id="${food.id}">Delete</button>
+                        <button class="btn-secondary btn-sm edit-food" data-id="${doc.id}">Edit</button>
+                        <button class="btn-danger btn-sm delete-food" data-id="${doc.id}">Delete</button>
                     </td>
                 </tr>
             `;
@@ -1847,17 +1947,24 @@ async function loadAdminFoods() {
         document.querySelectorAll('.delete-food').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const foodId = e.target.dataset.id;
-                deleteFood(foodId);
+                if (confirm('Are you sure you want to delete this food item?')) {
+                    deleteFood(foodId);
+                }
             });
         });
 
     } catch (error) {
         console.error('Error loading admin foods:', error);
-        showToast('Error loading foods', 'error');
+        showToast('Error loading foods: ' + error.message, 'error');
+        const foodsList = document.getElementById('admin-foods-list');
+        foodsList.innerHTML = `
+            <tr>
+                <td colspan="9" class="no-data">Error loading foods. Check console.</td>
+            </tr>
+        `;
     }
 }
 
-// FIXED: Admin food search and filter
 function setupAdminFoodFilters() {
     const adminFoodSearch = document.getElementById('admin-food-search');
     const adminMealFilter = document.getElementById('admin-meal-filter');
@@ -1884,7 +1991,6 @@ function setupAdminFoodFilters() {
     }
 }
 
-// Debounce function for search
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -1899,22 +2005,16 @@ function debounce(func, wait) {
 
 async function filterAdminFoods(searchTerm = '', mealType = '') {
     try {
-        const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
-            headers: {
-                'Authorization': 'admin-secret-key'
-            }
-        });
-        const data = await response.json();
-
-        if (!data.success) {
-            showToast('Error loading foods', 'error');
-            return;
-        }
-
+        const snapshot = await db.collection('foods').get();
         const foodsList = document.getElementById('admin-foods-list');
         foodsList.innerHTML = '';
 
-        let filteredFoods = data.foods || [];
+        let filteredFoods = [];
+        snapshot.forEach(doc => {
+            const food = doc.data();
+            food.id = doc.id;
+            filteredFoods.push(food);
+        });
 
         // Apply search filter
         if (searchTerm) {
@@ -1933,13 +2033,19 @@ async function filterAdminFoods(searchTerm = '', mealType = '') {
         if (filteredFoods.length === 0) {
             foodsList.innerHTML = `
                 <tr>
-                    <td colspan="8" class="no-data">No foods found matching your criteria</td>
+                    <td colspan="9" class="no-data">No foods found matching your criteria</td>
                 </tr>
             `;
             return;
         }
 
         filteredFoods.forEach(food => {
+            // Format available days
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const availableDays = food.availableDays || [];
+            const daysText = availableDays.length > 0 ?
+                availableDays.map(day => daysOfWeek[day]).join(', ') : 'Not set';
+
             const foodRow = `
                 <tr>
                     <td>${food.name}</td>
@@ -1949,6 +2055,7 @@ async function filterAdminFoods(searchTerm = '', mealType = '') {
                     <td>${food.fat}g</td>
                     <td><span class="meal-badge ${food.mealType}">${food.mealType}</span></td>
                     <td>${food.availableTime}</td>
+                    <td>${daysText}</td>
                     <td class="action-buttons">
                         <button class="btn-secondary btn-sm edit-food" data-id="${food.id}">Edit</button>
                         <button class="btn-danger btn-sm delete-food" data-id="${food.id}">Delete</button>
@@ -1969,7 +2076,9 @@ async function filterAdminFoods(searchTerm = '', mealType = '') {
         document.querySelectorAll('.delete-food').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const foodId = e.target.dataset.id;
-                deleteFood(foodId);
+                if (confirm('Are you sure you want to delete this food item?')) {
+                    deleteFood(foodId);
+                }
             });
         });
 
@@ -1981,24 +2090,14 @@ async function filterAdminFoods(searchTerm = '', mealType = '') {
 
 async function editFood(foodId) {
     try {
-        // First, get the food data
-        const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
-            headers: {
-                'Authorization': 'admin-secret-key'
-            }
-        });
-        const data = await response.json();
-
-        if (!data.success) {
-            showToast('Error loading food data', 'error');
-            return;
-        }
-
-        const food = data.foods.find(f => f.id === foodId);
-        if (!food) {
+        const foodDoc = await db.collection('foods').doc(foodId).get();
+        if (!foodDoc.exists) {
             showToast('Food not found', 'error');
             return;
         }
+
+        const food = foodDoc.data();
+        food.id = foodId;
 
         // Open edit modal with prefilled data
         openEditFoodModal(food);
@@ -2056,6 +2155,18 @@ function openEditFoodModal(food) {
                         <input type="time" id="edit-food-available-time" value="${food.availableTime}" required>
                     </div>
                     <div class="form-group">
+                        <label>Available Days (Hold Ctrl/Cmd to select multiple)</label>
+                        <select id="edit-food-days" multiple required style="height: 100px;">
+                            <option value="0" ${(food.availableDays && food.availableDays.includes(0)) ? 'selected' : ''}>Sunday</option>
+                            <option value="1" ${(food.availableDays && food.availableDays.includes(1)) ? 'selected' : ''}>Monday</option>
+                            <option value="2" ${(food.availableDays && food.availableDays.includes(2)) ? 'selected' : ''}>Tuesday</option>
+                            <option value="3" ${(food.availableDays && food.availableDays.includes(3)) ? 'selected' : ''}>Wednesday</option>
+                            <option value="4" ${(food.availableDays && food.availableDays.includes(4)) ? 'selected' : ''}>Thursday</option>
+                            <option value="5" ${(food.availableDays && food.availableDays.includes(5)) ? 'selected' : ''}>Friday</option>
+                            <option value="6" ${(food.availableDays && food.availableDays.includes(6)) ? 'selected' : ''}>Saturday</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>Allergy Warnings (comma separated)</label>
                         <input type="text" id="edit-food-allergies" value="${food.allergyWarnings && food.allergyWarnings[0] !== 'none' ? food.allergyWarnings.join(', ') : ''}" placeholder="dairy, nuts, gluten">
                     </div>
@@ -2095,6 +2206,14 @@ function openEditFoodModal(food) {
         document.getElementById('edit-food-allergies').value = food.allergyWarnings && food.allergyWarnings[0] !== 'none' ?
             food.allergyWarnings.join(', ') : '';
         document.getElementById('edit-food-importance').value = food.nutrientsImportance || '';
+
+        // Set selected days
+        const daySelect = document.getElementById('edit-food-days');
+        if (daySelect && food.availableDays) {
+            Array.from(daySelect.options).forEach(option => {
+                option.selected = food.availableDays.includes(parseInt(option.value));
+            });
+        }
     }
 
     editModal.classList.add('active');
@@ -2104,6 +2223,11 @@ async function handleUpdateFood(e) {
     e.preventDefault();
 
     const foodId = document.getElementById('edit-food-id').value;
+
+    // Get selected days
+    const dayOptions = document.getElementById('edit-food-days').selectedOptions;
+    const availableDays = Array.from(dayOptions).map(option => parseInt(option.value));
+
     const foodData = {
         name: document.getElementById('edit-food-name').value,
         calories: parseInt(document.getElementById('edit-food-calories').value),
@@ -2112,65 +2236,37 @@ async function handleUpdateFood(e) {
         fat: parseInt(document.getElementById('edit-food-fat').value),
         mealType: document.getElementById('edit-food-meal-type').value,
         availableTime: document.getElementById('edit-food-available-time').value,
+        availableDays: availableDays,
+        availableWeekdays: availableDays.map(day =>
+            ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day]
+        ),
         allergyWarnings: document.getElementById('edit-food-allergies').value ?
             document.getElementById('edit-food-allergies').value.split(',').map(a => a.trim()) : ['none'],
-        nutrientsImportance: document.getElementById('edit-food-importance').value || 'Provides essential nutrients'
+        nutrientsImportance: document.getElementById('edit-food-importance').value || 'Provides essential nutrients',
+        updatedAt: new Date().toISOString()
     };
 
     try {
-        const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'admin-secret-key'
-            },
-            body: JSON.stringify({
-                id: foodId,
-                data: foodData
-            })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            showToast('Food updated successfully!', 'success');
-            document.getElementById('edit-food-modal').classList.remove('active');
-            loadAdminFoods();
-            loadFoods(); // Refresh public food page
-        } else {
-            showToast('Error updating food: ' + result.error, 'error');
-        }
+        await db.collection('foods').doc(foodId).update(foodData);
+        showToast('Food updated successfully!', 'success');
+        document.getElementById('edit-food-modal').classList.remove('active');
+        loadAdminFoods();
+        loadFoods(); // Refresh public food page
     } catch (error) {
         console.error('Error updating food:', error);
-        showToast('Error updating food', 'error');
+        showToast('Error updating food: ' + error.message, 'error');
     }
 }
 
 async function deleteFood(foodId) {
-    if (confirm('Are you sure you want to delete this food item? This action cannot be undone.')) {
-        try {
-            const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'admin-secret-key'
-                },
-                body: JSON.stringify({ id: foodId })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                showToast('Food deleted successfully!', 'success');
-                loadAdminFoods();
-                loadFoods(); // Refresh public food page
-            } else {
-                showToast('Error deleting food: ' + result.error, 'error');
-            }
-        } catch (error) {
-            console.error('Error deleting food:', error);
-            showToast('Error deleting food', 'error');
-        }
+    try {
+        await db.collection('foods').doc(foodId).delete();
+        showToast('Food deleted successfully!', 'success');
+        loadAdminFoods();
+        loadFoods(); // Refresh public food page too
+    } catch (error) {
+        console.error('Error deleting food:', error);
+        showToast('Error deleting food', 'error');
     }
 }
 
@@ -2253,7 +2349,7 @@ async function loadAdminTrades() {
                     </div>
                     <div class="trade-details">
                         <p><strong>Trade:</strong> ${offeredFoodName} for ${requestedFoodName}</p>
-                        <p><strong>Time:</strong> ${trade.tradeDate} at ${trade.tradeTime}</p>
+                        <p><strong>Time:</strong> ${trade.tradeDate} at ${trade.tradeTime} (${trade.tradeDay || 'Weekly'})</p>
                         <p><strong>Created:</strong> ${formatDate(trade.createdAt)}</p>
                     </div>
                 </div>
@@ -2281,36 +2377,25 @@ async function handleAddFood(e) {
         fat: parseInt(document.getElementById('food-fat').value),
         mealType: document.getElementById('food-meal-type').value,
         availableTime: document.getElementById('food-available-time').value,
-        availableDate: new Date().toISOString().split('T')[0],
+        availableDays: [1, 2, 3, 4, 5], // Default: Monday-Friday
+        availableWeekdays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
         allergyWarnings: document.getElementById('food-allergies').value ?
             document.getElementById('food-allergies').value.split(',').map(a => a.trim()) : ['none'],
-        nutrientsImportance: document.getElementById('food-importance').value || 'Provides essential nutrients'
+        nutrientsImportance: document.getElementById('food-importance').value || 'Provides essential nutrients',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
     };
 
     try {
-        const response = await fetch('https://ict-dh-commerce-project.onrender.com/api/admin/foods', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'admin-secret-key'
-            },
-            body: JSON.stringify(foodData)
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            showToast('Food added successfully!', 'success');
-            document.getElementById('add-food-form').reset();
-            document.getElementById('add-food-modal').classList.remove('active');
-            loadAdminFoods();
-            loadFoods(); // Refresh public food page
-        } else {
-            showToast('Error adding food: ' + result.error, 'error');
-        }
+        await db.collection('foods').add(foodData);
+        showToast('Food added successfully!', 'success');
+        document.getElementById('add-food-form').reset();
+        document.getElementById('add-food-modal').classList.remove('active');
+        loadAdminFoods();
+        loadFoods(); // Refresh public food page
     } catch (error) {
         console.error('Error adding food:', error);
-        showToast('Error adding food', 'error');
+        showToast('Error adding food: ' + error.message, 'error');
     }
 }
 
