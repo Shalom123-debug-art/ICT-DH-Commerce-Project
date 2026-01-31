@@ -46,15 +46,7 @@ except ImportError:
 # INITIALIZE APP
 # ============================================
 app = Flask(__name__)
-CORS(app, resources={
-    r"/api/*": {
-        "origins": [
-            "https://ict-dh-commerce-project-1.onrender.com",  # Your frontend
-            "http://localhost:5500"  # Keep for local development
-        ]
-    }
-})
-
+CORS(app)  # Allow frontend requests
 
 # Email configuration
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
@@ -97,7 +89,6 @@ except Exception as e:
 # EMAIL FUNCTIONS
 # ============================================
 
-
 def send_email(to_email, subject, html_content):
     """Send email using SMTP"""
     try:
@@ -138,7 +129,6 @@ def send_email(to_email, subject, html_content):
         print(f"❌ FAILED to send email to {to_email}")
         print(f"❌ Error details: {type(e).__name__}: {e}")
         return False
-
 
 @app.route('/api/test-email', methods=['GET'])
 def test_email():
@@ -182,7 +172,6 @@ def test_email():
 # ============================================
 # SCHEDULED TASKS
 # ============================================
-
 
 def check_trade_reminders():
     """Check for trades happening soon and send reminders"""
@@ -270,7 +259,6 @@ def check_trade_reminders():
     except Exception as e:
         print(f"❌ Error in reminder check: {e}")
 
-
 def check_rating_requests():
     """Check for completed trades and send rating requests"""
     if not db or not SCHEDULER_AVAILABLE:
@@ -319,7 +307,7 @@ def check_rating_requests():
                                 f"""
                                 <h3>How was your trade with {seller_data.get('fullName')}?</h3>
                                 <p>Please rate your experience from 1-5 stars.</p>
-                                <p><a href="https://ict-dh-commerce-project.onrender.com/rate/{doc.id}/buyer">Click here to rate</a></p>
+                                <p><a href="http://localhost:5000/rate/{doc.id}/buyer">Click here to rate</a></p>
                                 <p>Your feedback helps build trust in our community!</p>
                                 """
                             )
@@ -331,7 +319,7 @@ def check_rating_requests():
                                 f"""
                                 <h3>How was your trade with {buyer_data.get('fullName')}?</h3>
                                 <p>Please rate your experience from 1-5 stars.</p>
-                                <p><a href="https://ict-dh-commerce-project.onrender.com/rate/{doc.id}/seller">Click here to rate</a></p>
+                                <p><a href="http://localhost:5000/rate/{doc.id}/seller">Click here to rate</a></p>
                                 <p>Your feedback helps build trust in our community!</p>
                                 """
                             )
@@ -343,7 +331,6 @@ def check_rating_requests():
 
     except Exception as e:
         print(f"❌ Error in rating check: {e}")
-
 
 # Initialize scheduler only if available
 scheduler = None
@@ -357,7 +344,6 @@ if SCHEDULER_AVAILABLE:
 # BASIC API ENDPOINTS
 # ============================================
 
-
 @app.route('/')
 def home():
     return jsonify({
@@ -368,7 +354,6 @@ def home():
         'email': 'configured' if EMAIL_USER and EMAIL_PASS else 'not configured',
         'timestamp': datetime.now().isoformat()
     })
-
 
 @app.route('/api/health', methods=['GET'])
 def health():
@@ -385,7 +370,6 @@ def health():
 # ============================================
 # EMAIL ENDPOINTS
 # ============================================
-
 
 @app.route('/api/send_welcome_email', methods=['POST'])
 def send_welcome_email():
@@ -427,7 +411,6 @@ def send_welcome_email():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/api/send_trade_request', methods=['POST'])
 def send_trade_request_email():
     """Send email when someone requests a trade"""
@@ -440,7 +423,7 @@ def send_trade_request_email():
         trade_time = data.get('trade_time')
         trade_date = data.get('trade_date')
         # Default to localhost
-        app_url = data.get('app_url', 'https://ict-dh-commerce-project-1.onrender.com')
+        app_url = data.get('app_url', 'http://localhost:5500')
 
         if not all([to_email, from_user, food_name]):
             return jsonify({'error': 'Missing required fields'}), 400
@@ -496,7 +479,6 @@ def send_trade_request_email():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/api/send_trade_accepted', methods=['POST'])
 def send_trade_accepted_email():
     """Send email when trade is accepted"""
@@ -526,10 +508,66 @@ def send_trade_accepted_email():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/send_trade_declined', methods=['POST'])
+def send_trade_declined_email():
+    """Send email when trade is declined with reason"""
+    try:
+        data = request.json
+        to_email = data.get('to_email')
+        from_user = data.get('from_user')
+        reason = data.get('reason', 'No reason provided')
+        app_url = data.get('app_url', 'http://localhost:5500')
+
+        if not all([to_email, from_user]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        success = send_email(
+            to_email,
+            "Trade Request Declined - DH Commerce",
+            f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <h2 style="color: #dc3545;">❌ Trade Request Declined</h2>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <p><strong>{from_user}</strong> has declined your trade request.</p>
+                        
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                            <p><strong>Reason provided:</strong></p>
+                            <p>"{reason}"</p>
+                        </div>
+                        
+                        <p>You can try making a different offer or find other traders.</p>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{app_url}" 
+                           style="background: #1d3557; color: white; padding: 12px 30px; 
+                                  text-decoration: none; border-radius: 5px; font-weight: bold;
+                                  display: inline-block;">
+                            Find Other Trades
+                        </a>
+                    </div>
+                    
+                    <p style="font-size: 14px; color: #666; text-align: center;">
+                        This is an automated message from DH-Commerce School Food Trading System
+                    </p>
+                </div>
+            </body>
+            </html>
+            """
+        )
+
+        return jsonify({'success': success})
+
+    except Exception as e:
+        print(f"❌ Error sending decline email: {e}")
+        return jsonify({'error': str(e)}), 500
+
 # ============================================
 # RATING ENDPOINT (called from email link)
 # ============================================
-
 
 @app.route('/rate/<transaction_id>/<role>', methods=['GET', 'POST'])
 def rate_transaction(transaction_id, role):
@@ -633,7 +671,7 @@ def rate_transaction(transaction_id, role):
                 <h2>Thank You!</h2>
                 <p>Your rating has been submitted successfully.</p>
                 <p><em>Your feedback helps improve our trading community.</em></p>
-                <p><a href="https://ict-dh-commerce-project-1.onrender.com">Return to DH-Commerce</a></p>
+                <p><a href="/">Return to DH-Commerce</a></p>
             </body>
             </html>
             """
@@ -644,7 +682,6 @@ def rate_transaction(transaction_id, role):
 # ============================================
 # ADMIN ENDPOINTS (Food Management)
 # ============================================
-
 
 @app.route('/api/admin/foods', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def admin_foods():
@@ -695,6 +732,7 @@ def admin_foods():
                 'mealType': data['mealType'],
                 'availableDate': data.get('availableDate', datetime.now().strftime('%Y-%m-%d')),
                 'availableTime': data.get('availableTime', '12:00'),
+                'availableDays': data.get('availableDays', [1, 2, 3, 4, 5]),  # Default: Mon-Fri
                 'allergyWarnings': data.get('allergyWarnings', ['none']),
                 'nutrientsImportance': data.get('nutrientsImportance', 'Provides essential nutrients'),
                 'createdAt': datetime.now().isoformat(),
@@ -753,7 +791,6 @@ def admin_foods():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/api/admin/check', methods=['GET'])
 def admin_check():
     """Check if user is admin"""
@@ -774,7 +811,6 @@ def admin_check():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/api/foods', methods=['GET'])
 def get_foods():
@@ -806,7 +842,6 @@ def get_foods():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/api/init_foods', methods=['POST'])
 def init_sample_foods():
     try:
@@ -821,7 +856,7 @@ def init_sample_foods():
                 'message': 'Foods already exist in database'
             })
 
-        # Sample foods
+        # Sample foods with multiple days
         sample_foods = [
             {
                 'name': 'Grilled Chicken Sandwich',
@@ -832,6 +867,7 @@ def init_sample_foods():
                 'mealType': 'lunch',
                 'availableDate': '2025-03-20',
                 'availableTime': '12:30',
+                'availableDays': [1, 3, 5],  # Monday, Wednesday, Friday
                 'allergyWarnings': ['none'],
                 'nutrientsImportance': 'High protein for muscle repair',
                 'createdAt': datetime.now().isoformat()
@@ -845,6 +881,7 @@ def init_sample_foods():
                 'mealType': 'breakfast',
                 'availableDate': '2025-03-20',
                 'availableTime': '08:00',
+                'availableDays': [0, 1, 2, 3, 4],  # Monday-Friday
                 'allergyWarnings': ['dairy'],
                 'nutrientsImportance': 'Calcium for bone health',
                 'createdAt': datetime.now().isoformat()
@@ -858,6 +895,7 @@ def init_sample_foods():
                 'mealType': 'dinner',
                 'availableDate': '2025-03-20',
                 'availableTime': '18:00',
+                'availableDays': [2, 4],  # Wednesday, Friday
                 'allergyWarnings': ['soy'],
                 'nutrientsImportance': 'Rich in vitamins and fiber',
                 'createdAt': datetime.now().isoformat()
@@ -883,7 +921,6 @@ def init_sample_foods():
 # ============================================
 # TRADE HISTORY ENDPOINT
 # ============================================
-
 
 @app.route('/api/trade-history/<user_id>', methods=['GET'])
 def get_trade_history(user_id):
@@ -954,6 +991,59 @@ def get_trade_history(user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ============================================
+# DIRECT FOOD ADDITION ENDPOINT (FOR FRONTEND)
+# ============================================
+
+@app.route('/api/add_food', methods=['POST'])
+def add_food():
+    """Direct endpoint for adding foods from frontend admin panel"""
+    try:
+        if not db:
+            return jsonify({'error': 'Database not connected'}), 500
+
+        data = request.json
+        print(f"Received food data: {data}")
+
+        # Required fields
+        required_fields = ['name', 'calories', 'mealType', 'availableTime']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        # Build food data with defaults
+        food_data = {
+            'name': data['name'],
+            'calories': int(data['calories']),
+            'protein': int(data.get('protein', 0)),
+            'carbs': int(data.get('carbs', 0)),
+            'fat': int(data.get('fat', 0)),
+            'mealType': data['mealType'],
+            'availableTime': data['availableTime'],
+            'availableDays': data.get('availableDays', [1, 2, 3, 4, 5]),  # Mon-Fri
+            'availableWeekdays': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+            'allergyWarnings': data.get('allergyWarnings', ['none']),
+            'nutrientsImportance': data.get('nutrientsImportance', 'Provides essential nutrients'),
+            'createdAt': datetime.now().isoformat(),
+            'updatedAt': datetime.now().isoformat()
+        }
+
+        # Add to Firestore
+        doc_ref = db.collection('foods').document()
+        doc_ref.set(food_data)
+
+        print(f"Food added successfully with ID: {doc_ref.id}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Food added successfully',
+            'foodId': doc_ref.id,
+            'food': food_data
+        })
+
+    except Exception as e:
+        print(f"Error adding food: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # ============================================
 # START THE SERVER
@@ -980,6 +1070,7 @@ if __name__ == '__main__':
     print("  POST /api/send_welcome_email   - Welcome email")
     print("  POST /api/send_trade_request   - Trade request notification")
     print("  POST /api/send_trade_accepted  - Trade acceptance notification")
+    print("  POST /api/send_trade_declined  - Trade decline notification")
     print("\n📋 ADMIN ENDPOINTS:")
     print("  GET    /api/admin/foods        - Get all foods (admin only)")
     print("  POST   /api/admin/foods        - Add new food (admin only)")
@@ -990,6 +1081,7 @@ if __name__ == '__main__':
     print("  GET  /api/foods                - Get all foods")
     print("  GET  /api/trade-history/<id>   - Get user trade history")
     print("  POST /api/init_foods           - Initialize sample data")
+    print("  POST /api/add_food             - Add food from admin panel")
     print("\n⏰ SCHEDULED TASKS:")
     print("  Trade reminders - Every 5 minutes")
     print("  Rating requests - Every 5 minutes")
